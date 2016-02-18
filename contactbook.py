@@ -24,23 +24,18 @@ try:
     import sqlite3
     from schema import Schema, And, Or, Use, SchemaError
     from tabulate import tabulate
-    import time
     from contact import Contact
     import sys
 except ImportError:
     exit("This app requires docopt, schema, sqlite3, tabulate is installed")
 
 
+global database
 database="./contacts.db"
 
 def set_data(string):
+    global database
     database=string
-def set_reverse(string):
-    reverse=string
-def set_sort(string):
-    reverse=string
-def set_sort(string):
-    sort=string
 
 if __name__ == '__main__':
     args= docopt(__doc__)
@@ -69,6 +64,7 @@ if __name__ == '__main__':
     c = connection.cursor()
     try:
         c.execute("create table contacts(id integer primary key autoincrement, fname text, lname text, mname text, phone text, bday text)")
+        print("new database " + database + " was created")
     except sqlite3.Error as e:
         print("Existing database " + database)
 
@@ -80,10 +76,11 @@ if __name__ == '__main__':
     elif args["find"]:
         print(tabulate(contact.find(contact, c), headers=["first name","last name","middle name","phone","birthday date"]))
     elif args["del"]:
-        if contact.delete(contact, c):
-            print("contact="+str(contact.get_tuple())+"was deleted")
+        result=contact.delete(contact, c)
+        if result:
+            print("contact="+str(result)+" was deleted")
         else:
-            print("there is no contact="+str(contact.get_tuple()))
+            print("there is no contact="+str(contact))
             sys.exit(100)
     elif args["list"]:
         print(tabulate(contact.lst(args, c), headers=["ID","first name","last name","middle name","phone","birthday date"]))

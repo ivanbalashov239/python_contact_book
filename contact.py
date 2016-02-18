@@ -28,8 +28,8 @@ class Contact(object):
             self.phone = ""
             self.bday  = ""
 
-    def set_id(self, int):
-        self.id=int
+    def set_id(self, integer):
+        self.id=integer
     def set_fname(self, string):
         self.fname=string
     def set_lname(self, string):
@@ -92,7 +92,7 @@ class Contact(object):
         string = string[:-1]
         msk = msk[:-1]
         finded = self.find(contact, c)
-        if len(finded) == 0:
+        if not finded:
             cnt = Contact()
             cnt.phone = contact.phone
             if len(self.find(cnt, c)) !=0:
@@ -167,9 +167,10 @@ class Contact(object):
         if string == "":
             return False
         try:
-            if len(c.execute(string1 + string).fetchall())>0:
+            lst=c.execute(string1 + string).fetchall()
+            if lst:
                 c.execute("delete from contacts where" + string)
-                return True
+                return lst
             else:
                 return False
         except sqlite3.Error as e:
