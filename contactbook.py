@@ -1,7 +1,7 @@
 #!/bin/python3
 """Usage:
-    contactbook.py (find|add|del) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--birthday=BDAY][--data=DATA]
-    contactbook.py [(list [--sort=ITEM])][--data=DATA]
+    contactbook.py (add|((del|find) [--id=ID])) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--bday=BDAY][--data=DATA]
+    contactbook.py [list [--sort=ITEM [--reverse]]][--data=DATA]
 
 Options:
     add     add contact to the base
@@ -11,46 +11,75 @@ Options:
         -l LNAME --last_name=LNAME      last name of contact
         -m MNAME --middle_name=MNAME    middle name of contact
         -p PHONE --phone=PHONE          phone of contact
-        -b BDAY  --birthday=BDAY        birthday of contact
+        -b BDAY  --bday=BDAY            birthday of contact
         -d DATA  --data=DATA            path to database
+        -i ID    --id=ID                id of contact in database
     list    list all contacts in database
         -s --sort=ITEM                  set sort in the list
+        -r --reverse                    reverse sort or not
 
 """
-from docopt import docopt
-import sqlite3
+try:
+    from docopt import docopt
+    import sqlite3
+    from schema import Schema, And, Or, Use, SchemaError
+    from tabulate import tabulate
+    import time
+    from contact import Contact
+except ImportError:
+    exit("This app requires docopt, schema, sqlite3, tabulate is installed")
+
+
 database="./contacts.db"
 
-def add(args, c):
-    c.executemany('insert into contacts(fname, lname, mname, phone, birthday) VALUES (?,?,?,?,?)', [args])
-def lst(args, c):
-    if args:
-        for row in c.execute('select fname, lname, mname, phone, birthday from contacts order by ' + args + 'callate reverse'):
-            print(row)
-    else:
-        for row in c.execute('select fname, lname, mname, phone, birthday from contacts'):
-            print(row)
-
+def set_data(string):
+    database=string
+def set_reverse(string):
+    reverse=string
+def set_sort(string):
+    reverse=string
+def set_sort(string):
+    sort=string
 
 if __name__ == '__main__':
     args= docopt(__doc__)
-    print(args)
-    contact = (args["--first_name"] or "",args["--last_name"] or "",args["--middle_name"] or "",args["--phone"] or "",args["--birthday"] or "")
-    print(contact)
+    contact = Contact()
+    # contact.set_bday(args["--bday"])
+    schema = Schema({
+        '--id': Or(None,And(Use(int),Use(contact.set_id, error='id is not correct, it should be integer number'))),
+        '--first_name': Or(None,Use(contact.set_fname, error='name is not correct')),
+        '--last_name': Or(None,Use(contact.set_lname, error='name is not correct')),
+        '--middle_name': Or(None,Use(contact.set_mname, error='name is not correct')),
+        '--phone': Or(None,Use(contact.set_phone, error='phone is not correct')),
+        '--bday': Or(None,Use(contact.set_bday, error='birtday is not correct it should be one of the formats ' + str(contact.bday_types))),
+        '--data': Or(None,Use(set_data, error='name was not correct')),
+        '--reverse': Or(None,True,False),
+        '--sort': Or(None,"fname","lname","mname","phone","bday", error="--sort should be one of the fname,lname,mname,phone,bday"),
+        'add': Or(False,True),
+        'del': Or(False, True),
+        'find': Or(False,True),
+        'list': Or(False,True),
+        })
+    try:
+        schema.validate(args)
+    except SchemaError as e:
+        exit(e)
     connection = sqlite3.connect(database)
     c = connection.cursor()
     try:
-        c.execute("create table contacts(fname text, lname text, mname text, phone text, birthday text)")
+        c.execute("create table contacts(id integer primary key autoincrement, fname text, lname text, mname text, phone text, bday text)")
     except sqlite3.Error as e:
-        print("Existing database")
+        print("Existing database " + database)
 
     if args["add"]:
-        add(contact, c)
+        contact.add(contact, c)
     elif args["find"]:
-        find(contact, c)
+        print(tabulate(contact.find(contact, c), headers=["first name","last name","middle name","phone","birthday date"]))
     elif args["del"]:
-        delete(contact, c)
+        contact.delete(contact, c)
     elif args["list"]:
-        lst(args["--sort"], c)
+        print(tabulate(contact.lst(args, c), headers=["ID","first name","last name","middle name","phone","birthday date"]))
+    else:
+        print("reminder")
     connection.commit()
     connection.close()
