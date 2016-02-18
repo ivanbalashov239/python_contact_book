@@ -26,6 +26,7 @@ try:
     from tabulate import tabulate
     import time
     from contact import Contact
+    import sys
 except ImportError:
     exit("This app requires docopt, schema, sqlite3, tabulate is installed")
 
@@ -47,9 +48,9 @@ if __name__ == '__main__':
     # contact.set_bday(args["--bday"])
     schema = Schema({
         '--id': Or(None,And(Use(int),Use(contact.set_id, error='id is not correct, it should be integer number'))),
-        '--first_name': Or(None,Use(contact.set_fname, error='name is not correct')),
-        '--last_name': Or(None,Use(contact.set_lname, error='name is not correct')),
-        '--middle_name': Or(None,Use(contact.set_mname, error='name is not correct')),
+        '--first_name': Or(None,Use(contact.set_fname, error='fname is not correct')),
+        '--last_name': Or(None,Use(contact.set_lname, error='lname is not correct')),
+        '--middle_name': Or(None,Use(contact.set_mname, error='mname is not correct')),
         '--phone': Or(None,Use(contact.set_phone, error='phone is not correct')),
         '--bday': Or(None,Use(contact.set_bday, error='birtday is not correct it should be one of the formats ' + str(contact.bday_types))),
         '--data': Or(None,Use(set_data, error='name was not correct')),
@@ -72,11 +73,18 @@ if __name__ == '__main__':
         print("Existing database " + database)
 
     if args["add"]:
-        contact.add(contact, c)
+        if contact.add(contact, c):
+            print("contact" + str(contact.get_tuple()) + " was added")
+        else:
+            print("this contact is already exist")
     elif args["find"]:
         print(tabulate(contact.find(contact, c), headers=["first name","last name","middle name","phone","birthday date"]))
     elif args["del"]:
-        contact.delete(contact, c)
+        if contact.delete(contact, c):
+            print("contact="+str(contact.get_tuple())+"was deleted")
+        else:
+            print("there is no contact="+str(contact.get_tuple()))
+            sys.exit(100)
     elif args["list"]:
         print(tabulate(contact.lst(args, c), headers=["ID","first name","last name","middle name","phone","birthday date"]))
     else:

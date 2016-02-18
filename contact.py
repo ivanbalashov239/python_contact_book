@@ -2,6 +2,7 @@ import sqlite3
 import time
 
 class Contact(object):
+    id    = ""
     fname = ""
     lname = ""
     mname = ""
@@ -51,7 +52,7 @@ class Contact(object):
         raise 
     
     def get_tuple(self):
-        return (self.fname, self.lname, self.mname, self.phone, self.bday)
+        return (self.id, self.fname, self.lname, self.mname, self.phone, self.bday)
 
     def __str__(self):
         fname = " first name="+self.fname if self.fname else ""
@@ -95,11 +96,11 @@ class Contact(object):
             cnt = Contact()
             cnt.phone = contact.phone
             if len(self.find(cnt, c)) !=0:
-                print("this phone number already in the database")
+                print("this phone number is already in the database")
             c.execute('insert into contacts('+string+') VALUES ('+msk+')', tuple(tup))
-            print("contact" + str(contact.get_tuple()) + " added")
+            return True
         else:
-            print("this contact already exist")
+            return False
 
     def find(self, contact, c):
         string1 = "select id, fname, lname, mname, phone, bday from contacts "
@@ -147,8 +148,30 @@ class Contact(object):
             print("there is no column:" + args["--sort"])
             raise
     def delete(self, contact, c):
+        string1 = "select id, fname, lname, mname, phone, bday from contacts where"
+        string = ""
+        if contact.id:
+            string+=" id='" + str(contact.id) + "' and "
+        if contact.fname:
+            string+=" fname='" + contact.fname + "' and "
+        if contact.lname:
+            string+=" lname='" + contact.lname + "' and "
+        if contact.mname:
+            string+=" mname='" + contact.mname + "' and "
+        if contact.phone:
+            string+=" phone='" + contact.phone + "' and "
+        if contact.bday:
+            string+=" bday='" + contact.bday + "' and "
+
+        string = string[:-4]
+        if string == "":
+            return False
         try:
-            c.execute("delete from contacts where id=?",(contact.id,))
+            if len(c.execute(string1 + string).fetchall())>0:
+                c.execute("delete from contacts where" + string)
+                return True
+            else:
+                return False
         except sqlite3.Error as e:
             print("there is no contact=" + "in the database")
             raise
