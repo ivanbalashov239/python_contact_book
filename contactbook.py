@@ -30,7 +30,6 @@ except ImportError:
     exit("This app requires docopt, schema, sqlite3, tabulate is installed")
 
 
-global database
 database="./contacts.db"
 
 def set_data(string):

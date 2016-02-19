@@ -64,7 +64,27 @@ class Contact(object):
     
     def __repr__(self):
         return self.__str__()
-
+    
+    def set_contact(self, contact, c):
+        string = ""
+        msk = ""
+        tup = []
+        if contact.id:
+            if contact.fname:
+                c.execute("UPDATE `contacts` SET `fname`=? WHERE `_rowid_`=?;",(contact.fname,contact.id))
+            if contact.lname:
+                c.execute("UPDATE `contacts` SET `lname`=? WHERE `_rowid_`=?;",(contact.lname,contact.id))
+            if contact.mname:
+                c.execute("UPDATE `contacts` SET `mname`=? WHERE `_rowid_`=?;",(contact.mname,contact.id))
+            if contact.phone:
+                c.execute("UPDATE `contacts` SET `phone`=? WHERE `_rowid_`=?;",(contact.phone,contact.id))
+            if contact.bday:
+                c.execute("UPDATE `contacts` SET `bday`=? WHERE `_rowid_`=?;",(contact.bday,contact.id))
+            tup.append(contact.id)
+            return True
+        else:
+            return False
+         
     def add(self, contact, c):
         string = ""
         msk = ""
@@ -95,8 +115,23 @@ class Contact(object):
         if not finded:
             cnt = Contact()
             cnt.phone = contact.phone
-            if len(self.find(cnt, c)) !=0:
-                print("this phone number is already in the database")
+            phone_finded=self.find(cnt, c)
+            if phone_finded:
+                phone_contact=phone_finded[0]
+                print("This phone number is already in the database")
+                print("Do you realy want to add this contact to the database?")
+                answer=input("(y(yes)/n(no)/r(replace))").lower()
+                yes=["y","yes"]
+                replace=["r","replace"]
+                if answer in yes:
+                    print("Ok, adding this contact to the database")
+                elif answer in replace:
+                    contact.id=phone_contact[0]
+                    self.set_contact(contact, c)
+                    return True
+                else:
+                    return False
+
             c.execute('insert into contacts('+string+') VALUES ('+msk+')', tuple(tup))
             return True
         else:
