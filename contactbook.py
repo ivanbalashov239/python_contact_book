@@ -27,8 +27,8 @@ try:
     from tabulate import tabulate
     from contact import Contact
     import sys
-except ImportError:
-    exit("This app requires docopt, schema, sqlite3, tabulate is installed")
+except ImportError as e:
+    exit("This app requires docopt, schema, sqlite3, tabulate is installed, "+ str(e))
 
 
 database="./contacts.db"
@@ -72,14 +72,26 @@ def main(args):
         print("Existing database " + database)
 
     if args["add"]:
-        if contact.add(contact, c, args):
-            print("contact" + str(contact.get_tuple()) + " was added")
+        added, phoneexist, comment = contact.add(contact, c, args)
+        if added:
+            print(comment+" contact" + str(contact.get_tuple()) + " was added")
         else:
-            print("this contact is already exist")
+            print(comment)
+        # print("This phone number is already in the database")
+        # print("Do you realy want to add this contact to the database?")
+        # answer=input("(y(yes)/n(no)/r(replace))").lower()
+        # yes=["y","yes"]
+        # replace=["r","replace"]
+        # if answer in yes:
+            # print("Ok, adding this contact to the database")
+        # elif answer in replace:
+        # else:
+            # return False
+
     elif args["find"]:
         finded=contact.find(contact, c)
         if finded:
-            print(tabulate(finded, headers=["first name","last name","middle name","phone","birthday date"]))
+            print(tabulate(finded, headers=["id","first name","last name","middle name","phone","birthday date"]))
         else:
             print("there is no any contact "+(("like:"+str(contact)) if str(contact) else ""))
     elif args["del"]:
@@ -92,7 +104,10 @@ def main(args):
     elif args["list"]:
         print(tabulate(contact.lst(args, c), headers=["ID","first name","last name","middle name","phone","birthday date"]))
     else:
-        print("reminder")
+        remind=contact.reminder(c)
+        print("This contact will have their birthdays in this and next months:")
+        print(tabulate(remind, headers=["id","first name","last name","middle name","phone","birthday date"]))
+
     connection.commit()
     connection.close()
 

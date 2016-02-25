@@ -1,5 +1,6 @@
 import sqlite3
-import time
+from datetime import date
+from time import strptime
 
 """class of contact with fields id,fname,lname,mname,phone,bday"""
 class Contact(object):
@@ -85,12 +86,13 @@ class Contact(object):
         types = self.bday_types
         for t in types:
             try:
-                struct=time.strptime(string, t)
+                struct=strptime(string, t)
                 self._bday=str(struct.tm_mday) + "/" + str(struct.tm_mon) + "/" +str(struct.tm_year)
                 return
-            except ValueError:
-                t=""
-        raise Exception("incorrect date format")
+            except ValueError as e:
+                ex=e
+        # return False
+        raise Exception("incorrect date format"+str(ex))
     
     def get_tuple(self):
         return (self.id, self.fname, self.lname, self.mname, self.phone, self.bday)
@@ -105,6 +107,10 @@ class Contact(object):
     
     def __repr__(self):
         return self.__str__()
+
+    def __iter__(self):
+        return contactIter(self)
+
 
 
     @staticmethod
@@ -125,7 +131,8 @@ class Contact(object):
             return False
          
     @staticmethod
-    def add(contact, c, *args):
+    def add(contact, c, args):
+        replace=args["--replace"]
         string = ""
         msk = ""
         tup = []
@@ -153,29 +160,23 @@ class Contact(object):
         msk = msk[:-1]
         finded = contact.find(contact, c)
         if not finded:
-            cnt = Contact()
-            cnt.phone = contact.phone
-            phone_finded=contact.find(cnt, c)
-            if phone_finded:
-                phone_contact=phone_finded[0]
-                print("This phone number is already in the database")
-                print("Do you realy want to add this contact to the database?")
-                answer=input("(y(yes)/n(no)/r(replace))").lower()
-                yes=["y","yes"]
-                replace=["r","replace"]
-                if answer in yes:
-                    print("Ok, adding this contact to the database")
-                elif answer in replace:
-                    contact.id=phone_contact[0]
-                    contact.setcontact(contact, c)
-                    return True
-                else:
-                    return False
+            if contact.phone:
+                cnt = Contact()
+                cnt.phone = contact.phone
+                phone_finded=contact.find(cnt, c)
+                if phone_finded:
+                    if replace:
+                        phone_contact=phone_finded[0]
+                        contact.id=phone_contact[0]
+                        contact.setcontact(contact, c)
+                        return True, True, "Contact with this phone="+contact.phone+" replaced"
+                    else:
+                        return False, True, "Contact with this phone="+contact.phone+" already exist"
 
             c.execute('insert into contacts('+string+') VALUES ('+msk+')', tuple(tup))
-            return True
+            return True, False, "Contact was added"
         else:
-            return False
+            return False, True, "This contact already exist"
 
     @staticmethod
     def find( contact, c):
@@ -259,14 +260,44 @@ class Contact(object):
 
     @staticmethod
     def reminder(c):
+        today = date.today()
+        today = str(today.day)+"/"+str(today.month)+"/"+str(today.year)
         contacts=[]
-        i=0
         for row in c.execute("select id, fname, lname, mname, phone, bday from contacts"):
-            contacts[i]=Contact()
-            contacts[i].id=row[0]
-            contacts[i].fname=row[1]
-            contacts[i].lname=row[2]
-            contacts[i].mname=row[3]
-            contacts[i].phone=row[4]
-            contacts[i].bday=row[5]
-                
+            contact=Contact()
+            contact.id=row[0]
+            contact.fname=row[1]
+            contact.lname=row[2]
+            contact.mname=row[3]
+            contact.phone=row[4]
+            contact.bday=row[5]
+            if contact.monthdelta(today,contact.bday):
+                contacts.append(contact)
+        return contacts
+
+    @staticmethod
+    def monthdelta(date1,date2):
+        day1, month1, year1 = date1.split("/")
+        day2, month2, year2 = date2.split("/")
+        mdelta=int(month2) - int(month1)
+        ddelta=int(day2) - int(day1)
+        if mdelta == 0:
+            if ddelta >= 0:
+                return True
+        elif mdelta > 0 and mdelta < 2:
+            return True
+
+        return False
+
+class contactIter(object):
+    def __init__(self, contact):
+        self.lst = contact.get_tuple()
+        self.i = -1
+    def __iter__(self):
+        return self
+    def __next__(self):
+        if self.i<len(self.lst)-1:
+            self.i += 1         
+            return self.lst[self.i]
+        else:
+            raise StopIteration
