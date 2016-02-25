@@ -1,32 +1,71 @@
 import sqlite3
 import time
 
+"""class of contact with fields id,fname,lname,mname,phone,bday"""
 class Contact(object):
-    id    = ""
-    fname = ""
-    lname = ""
-    mname = ""
-    phone = ""
-    bday  = ""
+    _id    = ""
+    _fname = ""
+    _lname = ""
+    _mname = ""
+    _phone = ""
+    _bday  = ""
     bday_types=["%d/%m/%Y","%d/%m/%y"]
     def __init__(self, *tupl):
         if len(tupl)==5:
             if tupl[0]:
-                self.set_fname(tupl[0])
+                fname(tupl[0])
             if tupl[1]:
-                self.set_mname(tupl[0])
+                mname(tupl[0])
             if tupl[2]:
-                self.set_lname(tupl[0])
+                lname(tupl[0])
             if tupl[3]:
-                self.set_phone(tupl[0])
+                self.phone(tupl[0])
             if tupl[4]:
-                self.set_bday(tupl[0])
+                bday(tupl[0])
         else:
             self.fname = ""
             self.lname = ""
             self.mname = ""
             self.phone = ""
             self.bday  = ""
+
+    @property
+    def id(self):
+        return self._id
+    @property
+    def fname(self):
+        return self._fname
+    @property
+    def lname(self):
+        return self._lname
+    @property
+    def mname(self):
+        return self._mname
+    @property
+    def phone(self):
+        return self._phone
+    @property
+    def bday(self):
+        return self._bday
+
+    @id.setter
+    def id(self, integer):
+        self._id=integer
+    @fname.setter
+    def fname(self, string):
+        self._fname=string
+    @lname.setter
+    def lname(self, string):
+        self._lname=string
+    @mname.setter
+    def mname(self, string):
+        self._mname=string
+    @phone.setter
+    def phone(self, string):
+        self._phone=string
+    @bday.setter
+    def bday(self, string):
+        self.set_bday(string)
 
     def set_id(self, integer):
         self.id=integer
@@ -39,17 +78,19 @@ class Contact(object):
     def set_phone(self, string):
         self.phone=string
     def set_bday(self, string):
+        if string == "":
+            return
         for i in " .-_":
             string = string.replace(i,'/')
         types = self.bday_types
         for t in types:
             try:
                 struct=time.strptime(string, t)
-                self.bday=str(struct.tm_mday) + "/" + str(struct.tm_mon) + "/" +str(struct.tm_year)
+                self._bday=str(struct.tm_mday) + "/" + str(struct.tm_mon) + "/" +str(struct.tm_year)
                 return
             except ValueError:
                 t=""
-        raise 
+        raise Exception("incorrect date format")
     
     def get_tuple(self):
         return (self.id, self.fname, self.lname, self.mname, self.phone, self.bday)
@@ -64,11 +105,10 @@ class Contact(object):
     
     def __repr__(self):
         return self.__str__()
-    
-    def set_contact(self, contact, c):
-        string = ""
-        msk = ""
-        tup = []
+
+
+    @staticmethod
+    def setcontact(contact, c):
         if contact.id:
             if contact.fname:
                 c.execute("UPDATE `contacts` SET `fname`=? WHERE `_rowid_`=?;",(contact.fname,contact.id))
@@ -80,12 +120,12 @@ class Contact(object):
                 c.execute("UPDATE `contacts` SET `phone`=? WHERE `_rowid_`=?;",(contact.phone,contact.id))
             if contact.bday:
                 c.execute("UPDATE `contacts` SET `bday`=? WHERE `_rowid_`=?;",(contact.bday,contact.id))
-            tup.append(contact.id)
             return True
         else:
             return False
          
-    def add(self, contact, c):
+    @staticmethod
+    def add(contact, c, *args):
         string = ""
         msk = ""
         tup = []
@@ -111,11 +151,11 @@ class Contact(object):
             msk += "?,"
         string = string[:-1]
         msk = msk[:-1]
-        finded = self.find(contact, c)
+        finded = contact.find(contact, c)
         if not finded:
             cnt = Contact()
             cnt.phone = contact.phone
-            phone_finded=self.find(cnt, c)
+            phone_finded=contact.find(cnt, c)
             if phone_finded:
                 phone_contact=phone_finded[0]
                 print("This phone number is already in the database")
@@ -127,7 +167,7 @@ class Contact(object):
                     print("Ok, adding this contact to the database")
                 elif answer in replace:
                     contact.id=phone_contact[0]
-                    self.set_contact(contact, c)
+                    contact.setcontact(contact, c)
                     return True
                 else:
                     return False
@@ -137,7 +177,8 @@ class Contact(object):
         else:
             return False
 
-    def find(self, contact, c):
+    @staticmethod
+    def find( contact, c):
         string1 = "select id, fname, lname, mname, phone, bday from contacts "
         string = ""
         if contact.id:
@@ -164,7 +205,9 @@ class Contact(object):
                 cont=eval(str(row))
                 rows.append(cont)
         return tuple(rows)
-    def lst(self, args, c):
+
+    @staticmethod
+    def lst( args, c):
         if args["--sort"]:
             ex='select id, fname, lname, mname, phone, bday from contacts order by ' + args["--sort"]
         else:
@@ -182,7 +225,9 @@ class Contact(object):
         except sqlite3.Error as e:
             print("there is no column:" + args["--sort"])
             raise
-    def delete(self, contact, c):
+
+    @staticmethod
+    def delete(contact, c):
         string1 = "select id, fname, lname, mname, phone, bday from contacts where"
         string = ""
         if contact.id:
@@ -211,3 +256,17 @@ class Contact(object):
         except sqlite3.Error as e:
             print("there is no contact=" + "in the database")
             raise
+
+    @staticmethod
+    def reminder(c):
+        contacts=[]
+        i=0
+        for row in c.execute("select id, fname, lname, mname, phone, bday from contacts"):
+            contacts[i]=Contact()
+            contacts[i].id=row[0]
+            contacts[i].fname=row[1]
+            contacts[i].lname=row[2]
+            contacts[i].mname=row[3]
+            contacts[i].phone=row[4]
+            contacts[i].bday=row[5]
+                

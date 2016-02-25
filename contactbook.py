@@ -1,10 +1,11 @@
 #!/bin/python3
 """Usage:
-    contactbook.py (add|((del|find) [--id=ID])) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--bday=BDAY][--data=DATA]
+    contactbook.py ((add [--replace])|((del|find) [--id=ID])) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--bday=BDAY][--data=DATA]
     contactbook.py [list [--sort=ITEM [--reverse]]][--data=DATA]
 
 Options:
     add     add contact to the base
+        -r       --replace              replace contact if exist
     find    find contact in the base
     del     delete contact from the base
         -f FNAME --first_name=FNAME     first name of contact
@@ -36,7 +37,9 @@ def set_data(string):
     global database
     database=string
 
-if __name__ == '__main__':
+
+def main(args):
+    sys.argv=args
     args= docopt(__doc__)
     contact = Contact()
     # contact.set_bday(args["--bday"])
@@ -49,6 +52,7 @@ if __name__ == '__main__':
         '--bday': Or(None,Use(contact.set_bday, error='birtday is not correct it should be one of the formats ' + str(contact.bday_types))),
         '--data': Or(None,Use(set_data, error='name was not correct')),
         '--reverse': Or(None,True,False),
+        '--replace': Or(None,True,False),
         '--sort': Or(None,"fname","lname","mname","phone","bday", error="--sort should be one of the fname,lname,mname,phone,bday"),
         'add': Or(False,True),
         'del': Or(False, True),
@@ -68,12 +72,16 @@ if __name__ == '__main__':
         print("Existing database " + database)
 
     if args["add"]:
-        if contact.add(contact, c):
+        if contact.add(contact, c, args):
             print("contact" + str(contact.get_tuple()) + " was added")
         else:
             print("this contact is already exist")
     elif args["find"]:
-        print(tabulate(contact.find(contact, c), headers=["first name","last name","middle name","phone","birthday date"]))
+        finded=contact.find(contact, c)
+        if finded:
+            print(tabulate(finded, headers=["first name","last name","middle name","phone","birthday date"]))
+        else:
+            print("there is no any contact "+(("like:"+str(contact)) if str(contact) else ""))
     elif args["del"]:
         result=contact.delete(contact, c)
         if result:
@@ -87,3 +95,6 @@ if __name__ == '__main__':
         print("reminder")
     connection.commit()
     connection.close()
+
+if __name__ == '__main__':
+    main(sys.argv)
