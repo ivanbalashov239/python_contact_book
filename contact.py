@@ -2,8 +2,8 @@ import sqlite3
 from datetime import date
 from time import strptime
 
-"""class of contact with fields id,fname,lname,mname,phone,bday"""
 class Contact(object):
+"""class of contact with fields id,fname,lname,mname,phone,bday"""
     _cid    = ""
     _fname = ""
     _lname = ""
@@ -293,9 +293,8 @@ class Contact(object):
         day2, month2, year2 = date2.split("/")
         mdelta=int(month2) - int(month1)
         ddelta=int(day2) - int(day1)
-        if mdelta == 0:
-            if ddelta >= 0:
-                return True
+        if mdelta == 0 and ddelta >= 0:
+            return True
         elif mdelta > 0 and mdelta < 2:
             return True
 

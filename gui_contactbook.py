@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import sys
-from PyQt5.QtWidgets import (QWidget, QMainWindow, QPushButton, QLabel, QLineEdit, QTextEdit, QGridLayout, QApplication, QMessageBox, QTableWidget, QTableWidgetItem
+try:
+    import sys
+    from PyQt5.QtWidgets import (QWidget, QMainWindow, QPushButton, QLabel, QLineEdit, QGridLayout, QApplication, QMessageBox, QTableWidget, QTableWidgetItem
         )
-from contact import Contact
-import sqlite3
-
-from tabulate import tabulate
+    from contact import Contact
+    import sqlite3
+except ImportError as e:
+    exit("You should resolve dependencies "+ str(e))
 
 class MainWindow(QMainWindow):
     def __init__(self, *args):
@@ -58,20 +59,20 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.mname, 4, 0)
         grid.addWidget(self.mnameEdit, 4, 1, 1, 4)
 
-        grid.addWidget(self.lname, 4, 0)
-        grid.addWidget(self.lnameEdit, 4, 1, 1, 4)
+        grid.addWidget(self.lname, 5, 0)
+        grid.addWidget(self.lnameEdit, 5, 1, 1, 4)
 
-        grid.addWidget(self.phone, 5, 0)
-        grid.addWidget(self.phoneEdit, 5, 1, 1, 4)
+        grid.addWidget(self.phone, 6, 0)
+        grid.addWidget(self.phoneEdit, 6, 1, 1, 4)
 
-        grid.addWidget(self.bday, 6, 0)
-        grid.addWidget(self.bdayEdit, 6, 1, 1, 4)
+        grid.addWidget(self.bday, 7, 0)
+        grid.addWidget(self.bdayEdit, 7, 1, 1, 4)
 
-        grid.addWidget(self.add, 7, 0)
-        grid.addWidget(self.delete, 7, 1)
-        grid.addWidget(self.find, 7, 2)
-        grid.addWidget(self.lst, 7, 3)
-        grid.addWidget(self.remind, 7, 4)
+        grid.addWidget(self.add, 8, 0)
+        grid.addWidget(self.delete, 8, 1)
+        grid.addWidget(self.find, 8, 2)
+        grid.addWidget(self.lst, 8, 3)
+        grid.addWidget(self.remind, 8, 4)
 
         self.grid = grid
         widget = QWidget()
@@ -141,7 +142,7 @@ class MainWindow(QMainWindow):
                 for i,c in enumerate(contacts):
                     for k,item in enumerate(c):
                         self.table.setCellWidget(i, k, QLabel(str(item)))
-                self.grid.addWidget(self.table, 8, 0, 12, 0)
+                self.grid.addWidget(self.table, 9, 0, 12, 0)
             else:
                 self.grid.removeWidget(self.table)
                 self.table.deleteLater()
@@ -184,22 +185,6 @@ class MainWindow(QMainWindow):
             event.accept()
         else:
             event.ignore()
-
-class Result(QWidget):
-    def __init__(self, *args):
-        super().__init__()
-
-        self.initUI()
-
-
-    def initUI(self):
-        grid = QGridLayout()
-        grid.setSpacing(10)
-        
-        self.setLayout(grid)
-
-        self.setGeometry(300, 300, 350, 300)
-        self.setWindowTitle('Result')
 
 class App(QApplication):
     def __init__(self, *args):
