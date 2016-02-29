@@ -196,6 +196,7 @@ class MainWindow(QMainWindow):
             event.ignore()
 
 class App(QApplication):
+    """Main class of application"""
     def __init__(self, *args):
         QApplication.__init__(self, *args)
         self.main = MainWindow()

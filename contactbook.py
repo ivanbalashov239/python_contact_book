@@ -19,6 +19,8 @@ Options:
         -s --sort=ITEM                  set sort in the list
         -r --reverse                    reverse sort or not
 
+    run without arguments to start reminder
+
 """
 try:
     from docopt import docopt
