@@ -14,15 +14,15 @@ class Contact(object):
     def __init__(self, *tupl):
         if len(tupl)==5:
             if tupl[0]:
-                fname(tupl[0])
+                self.fname(tupl[0])
             if tupl[1]:
-                mname(tupl[0])
+                self.mname(tupl[0])
             if tupl[2]:
-                lname(tupl[0])
+                self.lname(tupl[0])
             if tupl[3]:
-                self.phone(tupl[0])
+                self.self.phone(tupl[0])
             if tupl[4]:
-                bday(tupl[0])
+                self.bday(tupl[0])
         else:
             self.fname = ""
             self.lname = ""
@@ -124,6 +124,7 @@ class Contact(object):
 
     @staticmethod
     def setcontact(contact, c):
+        """set contact by id"""
         if contact.cid:
             if contact.fname:
                 c.execute("UPDATE `contacts` SET `fname`=? WHERE `_rowid_`=?;",(contact.fname,contact.cid))
@@ -141,6 +142,7 @@ class Contact(object):
          
     @staticmethod
     def add(contact, c, args):
+        """add contact method"""
         if args:
             replace=args["--replace"]
         string = ""
@@ -193,6 +195,7 @@ class Contact(object):
 
     @staticmethod
     def find( contact, c):
+        """find contact method"""
         string1 = "select id, fname, lname, mname, phone, bday from contacts "
         string = ""
         if contact.cid:
@@ -222,6 +225,7 @@ class Contact(object):
 
     @staticmethod
     def lst( args, c):
+        """list all contacts method"""
         if args and args["--sort"]:
             ex='select id, fname, lname, mname, phone, bday from contacts order by ' + args["--sort"]
         else:
@@ -242,6 +246,7 @@ class Contact(object):
 
     @staticmethod
     def delete(contact, c):
+        """delete contacts"""
         string1 = "select id, fname, lname, mname, phone, bday from contacts where"
         string = ""
         if contact.cid:
@@ -272,6 +277,7 @@ class Contact(object):
 
     @staticmethod
     def reminder(c):
+        """remind about birthdays in this or next month"""
         today = date.today()
         today = str(today.day)+"/"+str(today.month)+"/"+str(today.year)
         contacts=[]
@@ -289,18 +295,20 @@ class Contact(object):
 
     @staticmethod
     def monthdelta(date1,date2):
+        """let birthdays delta"""
         day1, month1, year1 = date1.split("/")
         day2, month2, year2 = date2.split("/")
         mdelta=int(month2) - int(month1)
         ddelta=int(day2) - int(day1)
         if mdelta == 0 and ddelta >= 0:
             return True
-        elif mdelta > 0 and mdelta < 2:
+        elif 0 < mdelta < 2:
             return True
 
         return False
 
 class contactIter(object):
+    """Contact Iterator"""
     def __init__(self, contact):
         self.lst = contact.get_tuple()
         self.i = -1

@@ -11,6 +11,7 @@ except ImportError as e:
     exit("You should resolve dependencies "+ str(e))
 
 class MainWindow(QMainWindow):
+    """Main window of contactbook gui"""
     def __init__(self, *args):
         super().__init__()
 
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
 
 
     def initUI(self):
+        """init user interface"""
         self.database = QLabel('database')
         self.cid   = QLabel('contact id')
         self.fname = QLabel('First name')
@@ -84,6 +86,7 @@ class MainWindow(QMainWindow):
         self.show()
 
     def addClicked(self):
+        """add contact when button add clicked"""
         contact = self.getContact()
         c, connection = self.connectToDatabase()
         added, phoneexist, comment = contact.add(contact, c, ())
@@ -94,6 +97,7 @@ class MainWindow(QMainWindow):
         connection.commit()
         connection.close()
     def deleteClicked(self):
+        """delete contact when button delete clicked"""
         contact = self.getContact()
         c, connection = self.connectToDatabase()
         result, comment =contact.delete(contact, c)
@@ -105,6 +109,7 @@ class MainWindow(QMainWindow):
         connection.commit()
         connection.close()
     def findClicked(self):
+        """find contact when button find clicked"""
         contact = self.getContact()
         c, connection = self.connectToDatabase()
         finded=contact.find(contact, c)
@@ -117,12 +122,14 @@ class MainWindow(QMainWindow):
         connection.commit()
         connection.close()
     def lstClicked(self):
+        """list all contacts"""
         contact = self.getContact()
         c, connection = self.connectToDatabase()
         result = contact.lst((), c)
         self.showResult(result)
         connection.close()
     def remindClicked(self):
+        """Remind about birthdays in this or next month"""
         contact = self.getContact()
         c, connection = self.connectToDatabase()
         remind=contact.reminder(c)
@@ -133,6 +140,7 @@ class MainWindow(QMainWindow):
             QMessageBox.question(self, 'Reminder', "there is no one who have birthday in this or next month", QMessageBox.Ok, QMessageBox.Ok)
         connection.close()
     def showResult(self, contacts):
+        """show table with results"""
         try:
             if contacts:
                 self.table = QTableWidget(len(contacts),6)
@@ -152,6 +160,7 @@ class MainWindow(QMainWindow):
 
 
     def getContact(self):
+        """get contacts from fields in gui"""
         contact = Contact()
         try:
             contact.cid   = self.cidEdit.text()
