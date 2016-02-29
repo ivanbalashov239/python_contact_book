@@ -4,7 +4,7 @@ from time import strptime
 
 """class of contact with fields id,fname,lname,mname,phone,bday"""
 class Contact(object):
-    _id    = ""
+    _cid    = ""
     _fname = ""
     _lname = ""
     _mname = ""
@@ -31,8 +31,8 @@ class Contact(object):
             self.bday  = ""
 
     @property
-    def id(self):
-        return self._id
+    def cid(self):
+        return self._cid
     @property
     def fname(self):
         return self._fname
@@ -49,27 +49,36 @@ class Contact(object):
     def bday(self):
         return self._bday
 
-    @id.setter
-    def id(self, integer):
-        self._id=integer
+    @cid.setter
+    def cid(self, integer):
+        if integer:
+            try:
+                self._cid=int(integer)
+            except Exception as e:
+                raise TypeError("Error: cid should be integer")
     @fname.setter
     def fname(self, string):
-        self._fname=string
+        if string:
+            self._fname=string
     @lname.setter
     def lname(self, string):
-        self._lname=string
+        if string:
+            self._lname=string
     @mname.setter
     def mname(self, string):
-        self._mname=string
+        if string:
+            self._mname=string
     @phone.setter
     def phone(self, string):
-        self._phone=string
+        if string:
+            self._phone=string
     @bday.setter
     def bday(self, string):
-        self.set_bday(string)
+        if string:
+            self.set_bday(string)
 
-    def set_id(self, integer):
-        self.id=integer
+    def set_cid(self, integer):
+        self.cid=integer
     def set_fname(self, string):
         self.fname=string
     def set_lname(self, string):
@@ -95,7 +104,7 @@ class Contact(object):
         raise Exception("incorrect date format"+str(ex))
     
     def get_tuple(self):
-        return (self.id, self.fname, self.lname, self.mname, self.phone, self.bday)
+        return (self.cid, self.fname, self.lname, self.mname, self.phone, self.bday)
 
     def __str__(self):
         fname = " first name="+self.fname if self.fname else ""
@@ -115,24 +124,25 @@ class Contact(object):
 
     @staticmethod
     def setcontact(contact, c):
-        if contact.id:
+        if contact.cid:
             if contact.fname:
-                c.execute("UPDATE `contacts` SET `fname`=? WHERE `_rowid_`=?;",(contact.fname,contact.id))
+                c.execute("UPDATE `contacts` SET `fname`=? WHERE `_rowid_`=?;",(contact.fname,contact.cid))
             if contact.lname:
-                c.execute("UPDATE `contacts` SET `lname`=? WHERE `_rowid_`=?;",(contact.lname,contact.id))
+                c.execute("UPDATE `contacts` SET `lname`=? WHERE `_rowid_`=?;",(contact.lname,contact.cid))
             if contact.mname:
-                c.execute("UPDATE `contacts` SET `mname`=? WHERE `_rowid_`=?;",(contact.mname,contact.id))
+                c.execute("UPDATE `contacts` SET `mname`=? WHERE `_rowid_`=?;",(contact.mname,contact.cid))
             if contact.phone:
-                c.execute("UPDATE `contacts` SET `phone`=? WHERE `_rowid_`=?;",(contact.phone,contact.id))
+                c.execute("UPDATE `contacts` SET `phone`=? WHERE `_rowid_`=?;",(contact.phone,contact.cid))
             if contact.bday:
-                c.execute("UPDATE `contacts` SET `bday`=? WHERE `_rowid_`=?;",(contact.bday,contact.id))
+                c.execute("UPDATE `contacts` SET `bday`=? WHERE `_rowid_`=?;",(contact.bday,contact.cid))
             return True
         else:
             return False
          
     @staticmethod
     def add(contact, c, args):
-        replace=args["--replace"]
+        if args:
+            replace=args["--replace"]
         string = ""
         msk = ""
         tup = []
@@ -158,32 +168,35 @@ class Contact(object):
             msk += "?,"
         string = string[:-1]
         msk = msk[:-1]
-        finded = contact.find(contact, c)
-        if not finded:
-            if contact.phone:
-                cnt = Contact()
-                cnt.phone = contact.phone
-                phone_finded=contact.find(cnt, c)
-                if phone_finded:
-                    if replace:
-                        phone_contact=phone_finded[0]
-                        contact.id=phone_contact[0]
-                        contact.setcontact(contact, c)
-                        return True, True, "Contact with this phone="+contact.phone+" replaced"
-                    else:
-                        return False, True, "Contact with this phone="+contact.phone+" already exist"
+        if string:
+            finded = contact.find(contact, c)
+            if not finded:
+                if contact.phone:
+                    cnt = Contact()
+                    cnt.phone = contact.phone
+                    phone_finded=contact.find(cnt, c)
+                    if phone_finded:
+                        if replace:
+                            phone_contact=phone_finded[0]
+                            contact.cid=phone_contact[0]
+                            contact.setcontact(contact, c)
+                            return True, True, "Contact with this phone="+contact.phone+" replaced"
+                        else:
+                            return False, True, "Contact with this phone="+contact.phone+" already exist"
 
-            c.execute('insert into contacts('+string+') VALUES ('+msk+')', tuple(tup))
-            return True, False, "Contact was added"
+                c.execute('insert into contacts('+string+') VALUES ('+msk+')', tuple(tup))
+                return True, False, "Contact was added"
+            else:
+                return False, True, "This contact already exist"
         else:
-            return False, True, "This contact already exist"
+            return False, False, "there is empty contact"
 
     @staticmethod
     def find( contact, c):
         string1 = "select id, fname, lname, mname, phone, bday from contacts "
         string = ""
-        if contact.id:
-            string+=" id='" + str(contact.id) + "' and "
+        if contact.cid:
+            string+=" id='" + str(contact.cid) + "' and "
         if contact.fname:
             string+=" fname='" + contact.fname + "' and "
         if contact.lname:
@@ -209,11 +222,11 @@ class Contact(object):
 
     @staticmethod
     def lst( args, c):
-        if args["--sort"]:
+        if args and args["--sort"]:
             ex='select id, fname, lname, mname, phone, bday from contacts order by ' + args["--sort"]
         else:
             ex='select id, fname, lname, mname, phone, bday from contacts '
-        if args["--reverse"]:
+        if args and args["--reverse"]:
             ex+=" desc"
 
         try:
@@ -231,8 +244,8 @@ class Contact(object):
     def delete(contact, c):
         string1 = "select id, fname, lname, mname, phone, bday from contacts where"
         string = ""
-        if contact.id:
-            string+=" id='" + str(contact.id) + "' and "
+        if contact.cid:
+            string+=" id='" + str(contact.cid) + "' and "
         if contact.fname:
             string+=" fname='" + contact.fname + "' and "
         if contact.lname:
@@ -246,17 +259,16 @@ class Contact(object):
 
         string = string[:-4]
         if string == "":
-            return False
+            return False, "empty contact can't be deleted"
         try:
             lst=c.execute(string1 + string).fetchall()
             if lst:
                 c.execute("delete from contacts where" + string)
-                return lst
+                return lst, "contact(s) deleted"
             else:
-                return False
+                return False, "there is no contact"
         except sqlite3.Error as e:
-            print("there is no contact=" + "in the database")
-            raise
+            return False, "there is no contact=" + contact + "in the database"
 
     @staticmethod
     def reminder(c):
@@ -265,13 +277,13 @@ class Contact(object):
         contacts=[]
         for row in c.execute("select id, fname, lname, mname, phone, bday from contacts"):
             contact=Contact()
-            contact.id=row[0]
+            contact.cid=row[0]
             contact.fname=row[1]
             contact.lname=row[2]
             contact.mname=row[3]
             contact.phone=row[4]
             contact.bday=row[5]
-            if contact.monthdelta(today,contact.bday):
+            if contact.bday and contact.monthdelta(today,contact.bday):
                 contacts.append(contact)
         return contacts
 

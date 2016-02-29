@@ -1,6 +1,6 @@
 #!/bin/python3
 """Usage:
-    contactbook.py ((add [--replace])|((del|find) [--id=ID])) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--bday=BDAY][--data=DATA]
+    contactbook.py ((add [--replace])|((del|find) [--contact_id=ID])) [--first_name=FNAME][--last_name=LNAME][--middle_name=MNAME][--phone=PHONE][--bday=BDAY][--data=DATA]
     contactbook.py [list [--sort=ITEM [--reverse]]][--data=DATA]
 
 Options:
@@ -14,7 +14,7 @@ Options:
         -p PHONE --phone=PHONE          phone of contact
         -b BDAY  --bday=BDAY            birthday of contact
         -d DATA  --data=DATA            path to database
-        -i ID    --id=ID                id of contact in database
+        -i ID    --contact_id=ID        id of contact in database
     list    list all contacts in database
         -s --sort=ITEM                  set sort in the list
         -r --reverse                    reverse sort or not
@@ -44,7 +44,7 @@ def main(args):
     contact = Contact()
     # contact.set_bday(args["--bday"])
     schema = Schema({
-        '--id': Or(None,And(Use(int),Use(contact.set_id, error='id is not correct, it should be integer number'))),
+        '--contact_id': Or(None,And(Use(int),Use(contact.set_cid, error='id is not correct, it should be integer number'))),
         '--first_name': Or(None,Use(contact.set_fname, error='fname is not correct')),
         '--last_name': Or(None,Use(contact.set_lname, error='lname is not correct')),
         '--middle_name': Or(None,Use(contact.set_mname, error='mname is not correct')),
@@ -63,9 +63,9 @@ def main(args):
         schema.validate(args)
     except SchemaError as e:
         exit(e)
-    connection = sqlite3.connect(database)
-    c = connection.cursor()
     try:
+        connection = sqlite3.connect(database)
+        c = connection.cursor()
         c.execute("create table contacts(id integer primary key autoincrement, fname text, lname text, mname text, phone text, bday text)")
         print("new database " + database + " was created")
     except sqlite3.Error as e:
@@ -74,39 +74,35 @@ def main(args):
     if args["add"]:
         added, phoneexist, comment = contact.add(contact, c, args)
         if added:
-            print(comment+" contact" + str(contact.get_tuple()) + " was added")
+            print(comment+" " + str(contact.get_tuple()))
         else:
             print(comment)
-        # print("This phone number is already in the database")
-        # print("Do you realy want to add this contact to the database?")
-        # answer=input("(y(yes)/n(no)/r(replace))").lower()
-        # yes=["y","yes"]
-        # replace=["r","replace"]
-        # if answer in yes:
-            # print("Ok, adding this contact to the database")
-        # elif answer in replace:
-        # else:
-            # return False
-
     elif args["find"]:
         finded=contact.find(contact, c)
         if finded:
-            print(tabulate(finded, headers=["id","first name","last name","middle name","phone","birthday date"]))
+            print(tabulate(finded, headers=["Id","first name","last name","middle name","phone","birthday date"]))
         else:
             print("there is no any contact "+(("like:"+str(contact)) if str(contact) else ""))
     elif args["del"]:
-        result=contact.delete(contact, c)
+        result, string=contact.delete(contact, c)
+        print(string)
         if result:
-            print("contact="+str(result)+" was deleted")
+            for r in result:
+                print(r)
         else:
-            print("there is no contact="+str(contact))
-            sys.exit(100)
+            sys.exit(-1)
     elif args["list"]:
-        print(tabulate(contact.lst(args, c), headers=["ID","first name","last name","middle name","phone","birthday date"]))
+        result = contact.lst(args, c)
+        if result:
+            print(tabulate(result, headers=["ID","first name","last name","middle name","phone","birthday date"]))
+        else:
+            print("there is empty database="+database)
+
     else:
         remind=contact.reminder(c)
         print("This contact will have their birthdays in this and next months:")
-        print(tabulate(remind, headers=["id","first name","last name","middle name","phone","birthday date"]))
+        if remind:
+            print(tabulate(remind, headers=["Id","first name","last name","middle name","phone","birthday date"]))
 
     connection.commit()
     connection.close()
