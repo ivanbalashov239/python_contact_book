@@ -3,7 +3,7 @@ from datetime import date
 from time import strptime
 
 class Contact(object):
-"""class of contact with fields id,fname,lname,mname,phone,bday"""
+    """class of contact with fields id,fname,lname,mname,phone,bday"""
     _cid    = ""
     _fname = ""
     _lname = ""

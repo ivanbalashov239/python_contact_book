@@ -88,9 +88,9 @@ class MainWindow(QMainWindow):
         c, connection = self.connectToDatabase()
         added, phoneexist, comment = contact.add(contact, c, ())
         if added:
-            reply = QMessageBox.question(self, 'Contact added', comment+" " + str(contact.get_tuple()), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Contact added', comment+" " + str(contact.get_tuple()), QMessageBox.Ok, QMessageBox.Ok)
         else:
-            reply = QMessageBox.question(self, 'Contact not added', comment, QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Contact not added', comment, QMessageBox.Ok, QMessageBox.Ok)
         connection.commit()
         connection.close()
     def deleteClicked(self):
@@ -99,9 +99,9 @@ class MainWindow(QMainWindow):
         result, comment =contact.delete(contact, c)
         self.showResult(result)
         if result:
-            reply = QMessageBox.question(self, 'Contact deleted', comment+" " + str(contact.get_tuple()), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Contact deleted', comment+" " + str(contact.get_tuple()), QMessageBox.Ok, QMessageBox.Ok)
         else:
-            reply = QMessageBox.question(self, 'Contact not deleted', comment, QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Contact not deleted', comment, QMessageBox.Ok, QMessageBox.Ok)
         connection.commit()
         connection.close()
     def findClicked(self):
@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
             self.showResult(finded)
         else:
             self.showResult(finded)
-            reply = QMessageBox.question(self, 'Nothing finded', "there is no any contact "+(("like:"+str(contact)) if str(contact) else ""), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Nothing finded', "there is no any contact "+(("like:"+str(contact)) if str(contact) else ""), QMessageBox.Ok, QMessageBox.Ok)
         connection.commit()
         connection.close()
     def lstClicked(self):
@@ -128,9 +128,9 @@ class MainWindow(QMainWindow):
         remind=contact.reminder(c)
         self.showResult(remind)
         if remind:
-            reply = QMessageBox.question(self, 'Reminder', "Don't forget about birthday congratulations", QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Reminder', "Don't forget about birthday congratulations", QMessageBox.Ok, QMessageBox.Ok)
         else:
-            reply = QMessageBox.question(self, 'Reminder', "there is no one who have birthday in this or next month", QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Reminder', "there is no one who have birthday in this or next month", QMessageBox.Ok, QMessageBox.Ok)
         connection.close()
     def showResult(self, contacts):
         try:
@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
             contact.phone = self.phoneEdit.text()
             contact.bday  = self.bdayEdit.text()
         except Exception as e:
-            reply = QMessageBox.question(self, 'Error', str(e), QMessageBox.Ok, QMessageBox.Ok)
+            QMessageBox.question(self, 'Error', str(e), QMessageBox.Ok, QMessageBox.Ok)
         return contact
     def connectToDatabase(self):
         database = self.databaseEdit.text()
